@@ -2,8 +2,9 @@ package com.example.dmaker.controller;
 
 //Controller = 사용자의 입력을 최초로 받는 곳
 
-import com.example.dmaker.entity.Developer;
+import com.example.dmaker.dto.CreateDeveloper;
 import com.example.dmaker.service.DMakerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,11 +29,10 @@ import java.util.List;
         return Arrays.asList("snow", "Elsa", "Olaf");
     }
 
-    @GetMapping("/create-developers")
-    public List<String> createDevelopers(){
-        log.info("GET/ create-developers HTTP/1.1");
-        dMakerService.createDeveloper();
-        return Collections.singletonList("tom");
+    @PostMapping("/create-developers")
+    public CreateDeveloper.Response createDevelopers(@Valid @RequestBody CreateDeveloper.Request request){
+        log.info("request : {}", request);
+        return dMakerService.createDeveloper(request);
     }
  }
 

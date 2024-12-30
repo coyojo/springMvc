@@ -1,12 +1,20 @@
 package com.example.dmaker.service;
 
+import com.example.dmaker.dto.CreateDeveloper;
 import com.example.dmaker.entity.Developer;
+import com.example.dmaker.exception.DMakerErrorCode;
+import com.example.dmaker.exception.DMakerException;
 import com.example.dmaker.repository.DeveloperRepository;
 import com.example.dmaker.type.DeveloperLevel;
 import com.example.dmaker.type.DeveloperSkillType;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor  // 모든 final필드와 @NonNull 필드를 파라미터로 받는 생서자를 자동 생성
@@ -21,19 +29,69 @@ public class DMakerService {
     }
 
  */
-    @Transactional
-    public void createDeveloper(){
-        Developer developer = Developer.builder()
-                .developerLevel(DeveloperLevel.JUNIOR)
-                .developerSkillType(DeveloperSkillType.FRONT_END)
-                .experienceYears(2)
-                .name("tom")
-                .age(20)
-                .build();
+    private final EntityManager em;
+    /*
+    Transactional의 개념
+    ACID
+    A - atomic 원자성
+    C - constistency 일관성
+    I- Isolation 고립성
+    D - durability 지속성
+     */
 
-        developerRepository.save(developer);
+    @Transactional
+    public CreateDeveloper.Response createDeveloper(CreateDeveloper.Request request){
+                validateCreateDeveloperRequest(request);
+             //business logic start
+             Developer developer = Developer.builder()
+                     .developerLevel(request.getDeveloperLevel())
+                     .developerSkillType(request.getDeveloperSkillType())
+                     .experienceYears(request.getExperienceYears())
+                     .memberId(request.getMemberId())
+                     .name(request.getName())
+                     .age(request.getAge())
+                     .build();
+
+             developerRepository.save(developer);
+             return CreateDeveloper.Response.fromEntity(developer);
+             //business logic end
+
+
+
     }
 
+    private void validateCreateDeveloperRequest(CreateDeveloper.Request request) {//business validation을 수행
+
+
+        DeveloperLevel developerLevel = request.getDeveloperLevel();
+        Integer experienceYears = request.getExperienceYears();
+
+        if (developerLevel ==DeveloperLevel.SENIOR
+        && experienceYears < 10 ){
+            throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
+        }
+        if (developerLevel == DeveloperLevel.JUNGNIOR
+            && (experienceYears < 4 || experienceYears >10)){
+        throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
+        }
+        if (developerLevel == DeveloperLevel.JUNIOR && experienceYears > 4){
+            throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
+        }
+
+       /*
+        Optional<Developer> developer = developerRepository.findByMemberId(request.getMemberId());
+        if(developer.isPresent()) throw new DMakerException(DMakerErrorCode.DUPLICATED_MEMBER_ID);
+            아래의 코드와 같은 걸 의미하는데 아래처럼도 쓸 수 있다는 뜻
+        */
+        developerRepository.findByMemberId(request.getMemberId())
+                .ifPresent((developer -> {
+                    throw new DMakerException(DMakerErrorCode.DUPLICATED_MEMBER_ID);
+                }));
+
+
+
+
+    }
 
 
 }
