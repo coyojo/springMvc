@@ -1,6 +1,8 @@
 package com.example.dmaker.service;
 
 import com.example.dmaker.dto.CreateDeveloper;
+import com.example.dmaker.dto.DeveloperDetailDto;
+import com.example.dmaker.dto.DeveloperDto;
 import com.example.dmaker.entity.Developer;
 import com.example.dmaker.exception.DMakerErrorCode;
 import com.example.dmaker.exception.DMakerException;
@@ -14,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor  // 모든 final필드와 @NonNull 필드를 파라미터로 받는 생서자를 자동 생성
@@ -94,4 +98,17 @@ public class DMakerService {
     }
 
 
+    public List<DeveloperDto> getAllDevelopers() {
+        return developerRepository.findAll()//List<Developer> 반환
+                .stream()//Stream<Developer>로 변환
+                .map(DeveloperDto::fromEntity)//DeveloperDto::fromEntity는 DeveloperDto클래스의 fromEntitiy라는 정적 메서드를 호출하라는 의미
+                // 각 Developer를 DeveloperDto로 매핑
+                .collect(Collectors.toList()); // Stream<DeveloperDto>를 List<DeveloperDto>로 변환
+    }
+
+    public DeveloperDetailDto getDeveloperDetail(String memberId) {
+        return developerRepository.findByMemberId(memberId)
+                .map(DeveloperDetailDto::fromEntity)
+                .orElseThrow(() -> new DMakerException(DMakerErrorCode.NO_DEVELOPER));
+    }
 }
