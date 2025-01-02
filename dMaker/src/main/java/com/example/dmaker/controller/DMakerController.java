@@ -5,6 +5,7 @@ package com.example.dmaker.controller;
 import com.example.dmaker.dto.CreateDeveloper;
 import com.example.dmaker.dto.DeveloperDetailDto;
 import com.example.dmaker.dto.DeveloperDto;
+import com.example.dmaker.dto.EditDeveloper;
 import com.example.dmaker.service.DMakerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,15 @@ import java.util.List;
     public DeveloperDetailDto getDeveloperDetail(@PathVariable String memberId){
         log.info("GET/ developers/memberId HTTP/1.1");
     return dMakerService.getDeveloperDetail(memberId);
+    }
+
+
+    @PutMapping("/developer/{memberId}")
+    public DeveloperDetailDto editDeveloper(
+            @PathVariable String memberId,
+            @Valid @RequestBody EditDeveloper.Request request){
+        log.info("PUT/developers HTTP/1.1");
+        return dMakerService.editDeveloper(memberId, request);
     }
 
  }
