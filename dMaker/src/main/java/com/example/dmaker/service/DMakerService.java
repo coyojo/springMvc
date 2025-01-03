@@ -1,30 +1,29 @@
 package com.example.dmaker.service;
 
+import com.example.dmaker.code.StatusCode;
 import com.example.dmaker.dto.CreateDeveloper;
 import com.example.dmaker.dto.DeveloperDetailDto;
 import com.example.dmaker.dto.DeveloperDto;
 import com.example.dmaker.dto.EditDeveloper;
 import com.example.dmaker.entity.Developer;
+import com.example.dmaker.entity.RetiredDeveloper;
 import com.example.dmaker.exception.DMakerErrorCode;
 import com.example.dmaker.exception.DMakerException;
 import com.example.dmaker.repository.DeveloperRepository;
+import com.example.dmaker.repository.RetiredDeveloperRepository;
 import com.example.dmaker.type.DeveloperLevel;
-import com.example.dmaker.type.DeveloperSkillType;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor  // 모든 final필드와 @NonNull 필드를 파라미터로 받는 생서자를 자동 생성
 public class DMakerService {
     private final DeveloperRepository developerRepository;
+    private final RetiredDeveloperRepository retiredDeveloperRepository;
     // final 키워드를 사용하면 해당 필드가 일기 전용으로 사용된다는 의도를 명확히 드러낸다.
 
 /*   아래의 코드로 복잡하게 해야 할 것을 위의 한줄로 줄이면서 더 리팩토링이 쉬워지게된것은
@@ -34,7 +33,7 @@ public class DMakerService {
     }
 
  */
-    private final EntityManager em;
+
     /*
     Transactional의 개념
     ACID
@@ -53,6 +52,7 @@ public class DMakerService {
                      .developerSkillType(request.getDeveloperSkillType())
                      .experienceYears(request.getExperienceYears())
                      .memberId(request.getMemberId())
+                     .statusCode(StatusCode.EMPLOYED)
                      .name(request.getName())
                      .age(request.getAge())
                      .build();
@@ -133,5 +133,23 @@ public class DMakerService {
         if (developerLevel == DeveloperLevel.JUNIOR && experienceYears > 4){
             throw new DMakerException(DMakerErrorCode.LEVEL_EXPERIENCE_YEARS_NOT_MATCHED);
         }
+    }
+
+    @Transactional
+    public DeveloperDetailDto deleteDeveloper(String memberId) {
+        //1. EMPLOYED -> RETIRED로 바꿔주기
+        //먼저 해당 아이디인 개발자가 있는지부터 체크
+        Developer developer = developerRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new DMakerException(DMakerErrorCode.NO_DEVELOPER));
+
+        developer.setStatusCode(StatusCode.RETIRED);
+        //2. save into RetiredDeveloper
+       RetiredDeveloper retiredDeveloper =
+               RetiredDeveloper.builder()
+                .memberId(memberId)
+                .name(developer.getName())
+                .build();
+         retiredDeveloperRepository.save(retiredDeveloper);
+         return DeveloperDetailDto.fromEntity(developer);
     }
 }
