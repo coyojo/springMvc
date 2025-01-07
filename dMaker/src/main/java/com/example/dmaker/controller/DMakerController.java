@@ -24,7 +24,7 @@ import java.util.List;
     @GetMapping("/developers")
      public List<DeveloperDto> getAllDevelopers(){
         log.info("GET/ developers HTTP/1.1");
-        return dMakerService.getAllDevelopers();
+        return dMakerService.getAllEmployedDevelopers();
     }
 
     @PostMapping("/create-developers")
@@ -50,7 +50,7 @@ import java.util.List;
 
     @DeleteMapping("/developer/{memberId}")
     public DeveloperDetailDto deleteDeveloper( @PathVariable String memberId){
-
+        log.info("delete/developers HTTP/1.1");
         return dMakerService.deleteDeveloper(memberId);
     }
 

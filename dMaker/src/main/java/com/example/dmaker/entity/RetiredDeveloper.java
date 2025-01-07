@@ -1,5 +1,6 @@
 package com.example.dmaker.entity;
 
+import com.example.dmaker.code.StatusCode;
 import com.example.dmaker.type.DeveloperLevel;
 import com.example.dmaker.type.DeveloperSkillType;
 import jakarta.persistence.*;
@@ -28,6 +29,9 @@ public class RetiredDeveloper {
     private String memberId;
     private String name;
     private Integer age;
+
+    @Enumerated(EnumType.STRING)
+    private StatusCode statusCode;
 
     @CreatedDate
     private LocalDateTime cratedAt;

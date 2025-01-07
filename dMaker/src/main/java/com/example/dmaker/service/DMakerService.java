@@ -86,8 +86,8 @@ public class DMakerService {
     }
 
 
-    public List<DeveloperDto> getAllDevelopers() {
-        return developerRepository.findAll()//List<Developer> 반환
+    public List<DeveloperDto> getAllEmployedDevelopers() {
+        return developerRepository.findDeveloperByStatusCodeEquals(StatusCode.EMPLOYED)//List<Developer> 반환
                 .stream()//Stream<Developer>로 변환
                 .map(DeveloperDto::fromEntity)//DeveloperDto::fromEntity는 DeveloperDto클래스의 fromEntitiy라는 정적 메서드를 호출하라는 의미
                 // 각 Developer를 DeveloperDto로 매핑
@@ -142,7 +142,8 @@ public class DMakerService {
         Developer developer = developerRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new DMakerException(DMakerErrorCode.NO_DEVELOPER));
 
-        developer.setStatusCode(StatusCode.RETIRED);
+            developer.setStatusCode(StatusCode.RETIRED);
+
         //2. save into RetiredDeveloper
        RetiredDeveloper retiredDeveloper =
                RetiredDeveloper.builder()
